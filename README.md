@@ -98,7 +98,7 @@ A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](
 | Testes | Dependente do laboratório | pytest para os três endpoints |
 | CI | Não é requisito central | GitHub Actions bloqueante |
 | Arquitetura | Conteúdo da trilha | Mermaid + SVG + documentação de decisões |
-| Evidências | Responsabilidade do aluno | Checklist separado entre evidência automática e manual |
+| Evidências | Responsabilidade do aluno | Evidências locais, Docker, pytest e CI registradas no repositório |
 
 A comparação acima não substitui nem deprecia o material original; ela mostra como os conceitos foram reorganizados em uma entrega autoral de portfólio.
 
@@ -116,6 +116,13 @@ azure-application-platform-lab/
 │   ├── security.md
 │   └── AUDIT_HANDOFF.md
 ├── evidence/
+│   ├── 01-app-local.png
+│   ├── 02-health-endpoint.png
+│   ├── 03-info-endpoint.png
+│   ├── 04-docker-running.png
+│   ├── 05-docker-health.png
+│   ├── 06-pytest-success.png
+│   ├── 07-github-actions-success.png
 │   └── README.md
 ├── infra/
 │   ├── azure/README.md
@@ -248,9 +255,11 @@ O projeto distingue evidência automática de evidência manual.
 
 **Comprovação automática:** GitHub Actions executa testes Python, lint e smoke test Docker.
 
-**Ainda depende do autor:** screenshots exigidos/valorizados pela entrega da DIO, como aplicação local, `/health`, container e tela do workflow. O checklist está em [`evidence/README.md`](evidence/README.md).
+**Comprovação manual concluída:** aplicação local, `/health`, `/info`, container Docker, health check do container, pytest local e tela do workflow foram registrados em screenshots reais na pasta [`evidence/`](evidence/).
 
-Nenhum print ou recurso Azure é fabricado neste repositório.
+O checklist detalhado está em [`evidence/README.md`](evidence/README.md).
+
+Nenhum recurso Azure é declarado como provisionado sem evidência real.
 
 ## Aprendizados principais
 
@@ -278,7 +287,7 @@ Em cerca de um minuto, os principais pontos do projeto podem ser avaliados neste
 
 ## Próximos passos opcionais
 
-- [ ] adicionar screenshots reais da execução local/Docker/CI;
+- [ ] executar Kubernetes local e registrar evidência, caso queira demonstrar também a camada de orquestração;
 - [ ] realizar um deploy real no Azure Container Apps, caso exista conta/ambiente autorizado;
 - [ ] registrar Application Insights/Log Analytics apenas se forem realmente configurados.
 
@@ -289,7 +298,7 @@ Esses itens não justificam adicionar Helm, ArgoCD, Terraform, Grafana, Kafka ou
 - [Microsoft Azure Documentation](https://learn.microsoft.com/azure/)
 - [Azure App Service](https://learn.microsoft.com/azure/app-service/)
 - [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/)
-- [Azure Kubernetes Service](https://learn.microsoft.com/azure/aks/)
+- [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/azure/aks/)
 - [Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
 - [Docker Documentation](https://docs.docker.com/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
