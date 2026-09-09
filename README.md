@@ -1,297 +1,288 @@
 # ☁️ Microsoft Azure Application Platform Lab
 
-**Projeto prático desenvolvido durante a formação [DIO](https://www.dio.me/) — Microsoft Application Platform.**
+**Projeto prático desenvolvido como desafio da DIO — Microsoft Application Platform.**
 
-[![Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![Validate Project](https://github.com/matheusflorindo32/azure-application-platform-lab/actions/workflows/validate.yml/badge.svg)](https://github.com/matheusflorindo32/azure-application-platform-lab/actions/workflows/validate.yml)
+[![Azure](https://img.shields.io/badge/Microsoft_Azure-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
----
+## Visão geral
 
-## Visão Geral
+Este repositório transforma os conceitos estudados na formação **Microsoft Application Platform** em um laboratório pequeno, executável e auditável. A implementação usa uma API Flask como carga de trabalho de referência para demonstrar testes automatizados, containerização com Docker, manifests Kubernetes, CI com GitHub Actions, fundamentos de segurança e arquitetura Azure.
 
-Este repositório documenta o projeto prático de estudo da **Microsoft Azure Application Platform**, cobrindo desde a containerização de uma aplicação web até conceitos de orquestração com Kubernetes, deploy em serviços Azure e observabilidade com Application Insights e Log Analytics.
+O projeto evita declarar infraestrutura cloud que não tenha sido realmente provisionada. App Service, Azure Container Apps, AKS, Application Insights e Log Analytics são documentados como alternativas e conceitos estudados enquanto não houver evidência real de execução.
 
-O objetivo não é apenas entregar o desafio, mas construir um **repositório de portfólio profissional** que demonstre compreensão real dos conceitos, com documentação de qualidade, código funcional e estrutura auditável.
+> **Objetivo:** demonstrar qualidade de engenharia e aprendizado verificável sem ampliar artificialmente o escopo do desafio.
 
-## Desafio
+## O desafio da DIO
 
-O desafio da DIO solicita:
+A entrega proposta pela DIO solicita, em essência:
 
-1. Criar um novo repositório no GitHub.
-2. Incluir um `README.md` documentando o processo.
-3. Adicionar prints e evidências de execução.
-4. Descrever insights e conhecimentos adquiridos.
-5. Compartilhar o link do repositório na plataforma DIO.
+1. criar um repositório próprio;
+2. documentar o processo em `README.md`;
+3. incluir prints/evidências;
+4. registrar insights e aprendizados;
+5. compartilhar o repositório como projeto de portfólio.
 
-**Repositório de referência:** [digitalinnovationone/Microsoft_Application_Platform](https://github.com/digitalinnovationone/Microsoft_Application_Platform)
+**Referência oficial:** [digitalinnovationone/Microsoft_Application_Platform](https://github.com/digitalinnovationone/Microsoft_Application_Platform)
 
-## Objetivos
+## O que este projeto demonstra
 
-- Compreender os serviços Azure para hospedagem de aplicações (App Service, Container Apps, AKS).
-- Containerizar uma aplicação web com Docker seguindo boas práticas.
-- Criar manifests Kubernetes para deploy e exposição de serviços.
-- Estudar observabilidade com Application Insights e Log Analytics.
-- Aplicar princípios de segurança (sem credentials no código, menor privilégio).
-- Documentar aprendizados de forma estruturada e reproduzível.
+- API REST mínima com **Python 3.12 + Flask**;
+- configuração por variáveis de ambiente;
+- endpoints `/`, `/health` e `/info`;
+- testes automatizados com **pytest**;
+- container Docker com **Gunicorn** e execução como usuário não-root;
+- health check do container;
+- Kubernetes `Deployment` com 2 réplicas;
+- liveness/readiness probes e requests/limits;
+- workload Kubernetes com `runAsNonRoot`, `seccomp`, capabilities removidas e privilege escalation desabilitado;
+- `Service` do tipo `LoadBalancer`;
+- CI bloqueante com **GitHub Actions**;
+- smoke test real do container chamando `/health`;
+- arquitetura conceitual para App Service, Container Apps e AKS;
+- fundamentos de Application Insights e Log Analytics;
+- separação entre código, infraestrutura, documentação e evidências;
+- boas práticas para não versionar secrets.
 
----
+## Arquitetura
 
-## Arquitetura da Solução
+![Arquitetura conceitual](docs/diagrams/architecture.svg)
 
-> **Arquitetura conceitual** — representa o design estudado no laboratório.
-> Recursos Azure não foram provisionados, salvo quando acompanhados de evidência.
+> O diagrama apresenta **alternativas de hospedagem estudadas**, e não três deploys Azure simultâneos.
 
-```mermaid
-flowchart TD
-    subgraph Cliente
-        A[Usuário / Browser]
-    end
+Fluxo técnico comprovável no repositório:
 
-    subgraph "Aplicação Flask"
-        B[Web App + API]
-    end
-
-    subgraph "Opções de Hospedagem Azure"
-        C[Azure App Service]
-        D[Azure Container Apps]
-        E[AKS — Kubernetes]
-    end
-
-    subgraph Container
-        F[Docker Image]
-    end
-
-    subgraph Observabilidade
-        G[Application Insights]
-        H[Log Analytics]
-    end
-
-    A -->|Request| B
-    B --> F
-    F -->|PaaS| C
-    F -->|Serverless| D
-    F -->|Orquestração| E
-    C -.->|Telemetria| G
-    D -.->|Telemetria| G
-    E -.->|Logs| H
-    G -.-> H
+```text
+Código Flask
+    ↓
+pytest
+    ↓
+Docker build
+    ↓
+Container + /health
+    ↓
+GitHub Actions
+    ↓
+Manifests Kubernetes
+    ↓
+Documentação Azure e observabilidade
 ```
 
-### Trilha Kubernetes (detalhe)
+A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](docs/architecture.md).
 
-```mermaid
-flowchart LR
-    IMG[Docker Image] --> DEP[Deployment<br/>2 réplicas]
-    DEP --> POD1[Pod 1]
-    DEP --> POD2[Pod 2]
-    POD1 & POD2 --> SVC[Service<br/>LoadBalancer :80]
-    SVC --> USER[Usuário]
-```
+## Stack
 
----
-
-## Tecnologias
-
-| Categoria | Tecnologia | Papel |
+| Área | Tecnologia | Papel no projeto |
 |---|---|---|
-| Linguagem | Python 3.12 | Aplicação web |
-| Framework | Flask | API REST mínima |
-| WSGI Server | Gunicorn | Servidor de produção |
+| Aplicação | Python 3.12 + Flask | API educacional |
+| Servidor | Gunicorn | Execução WSGI no container |
+| Testes | pytest | Validação dos endpoints |
 | Container | Docker | Empacotamento e portabilidade |
-| Orquestração | Kubernetes | Deploy, scaling, health checks |
-| Cloud | Microsoft Azure | Hospedagem e observabilidade |
-| CI | GitHub Actions | Validação automatizada |
+| Orquestração | Kubernetes | Deployment, Service e health probes |
+| Cloud | Microsoft Azure | Plataforma estudada para hospedagem |
+| Observabilidade | Application Insights / Log Analytics | Telemetria e análise de logs |
+| CI | GitHub Actions | Testes, lint e smoke test Docker |
 
----
+## Projeto DIO × implementação autoral
 
-## Microsoft Azure
-
-Serviços Azure estudados neste laboratório:
-
-| Serviço | Função | Complexidade |
+| Aspecto | Referência DIO | Implementação neste repositório |
 |---|---|---|
-| Azure App Service | PaaS para apps web e APIs | Baixa |
-| Azure Container Apps | Serverless para containers | Média |
-| Azure Kubernetes Service (AKS) | Kubernetes gerenciado | Alta |
-| Application Insights | APM e telemetria | Baixa–Média |
-| Log Analytics | Centralização de logs (KQL) | Média |
+| Aplicação | Labs e exemplos educacionais | API Flask pequena e reproduzível |
+| Containers | Conceitos e exemplos | Dockerfile funcional com non-root e health check |
+| Kubernetes | Manifests educacionais | Deployment + Service + probes + limites + hardening básico |
+| Segurança | Conteúdo de estudo | `.gitignore`, `.env.example`, non-root e workload restrito |
+| Testes | Dependente do laboratório | pytest para os três endpoints |
+| CI | Não é requisito central | GitHub Actions bloqueante |
+| Arquitetura | Conteúdo da trilha | Mermaid + SVG + documentação de decisões |
+| Evidências | Responsabilidade do aluno | Checklist separado entre evidência automática e manual |
 
-> Detalhamento completo em [`docs/azure-services.md`](docs/azure-services.md)
+A comparação acima não substitui nem deprecia o material original; ela mostra como os conceitos foram reorganizados em uma entrega autoral de portfólio.
 
-## Containers
+## Estrutura do repositório
 
-A aplicação é containerizada com Docker seguindo boas práticas:
+```text
+azure-application-platform-lab/
+├── .github/workflows/
+│   └── validate.yml
+├── docs/
+│   ├── diagrams/architecture.svg
+│   ├── architecture.md
+│   ├── azure-services.md
+│   ├── learning-notes.md
+│   ├── security.md
+│   └── AUDIT_HANDOFF.md
+├── evidence/
+│   └── README.md
+├── infra/
+│   ├── azure/README.md
+│   ├── docker/Dockerfile
+│   └── kubernetes/
+│       ├── deployment.yaml
+│       └── service.yaml
+├── src/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── README.md
+├── tests/
+│   └── test_app.py
+├── requirements-dev.txt
+├── .env.example
+├── .gitignore
+├── .markdownlint-cli2.jsonc
+├── LICENSE
+└── README.md
+```
 
-- Imagem base `python:3.12-slim` (superfície de ataque reduzida).
-- Usuário não-root (`appuser`).
-- Health check integrado.
-- Separação de camadas para cache eficiente.
-- Nenhuma credencial na imagem.
+## Executar localmente
+
+### Pré-requisitos
+
+- Python 3.12 recomendado;
+- Docker para execução containerizada;
+- `kubectl` e um cluster local apenas se quiser testar os manifests Kubernetes.
+
+### Python
 
 ```bash
-# Build
+python -m venv .venv
+
+# Linux/macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+# .\.venv\Scripts\Activate.ps1
+
+pip install -r requirements-dev.txt
+pytest -q
+python src/app.py
+```
+
+A aplicação ficará disponível em `http://localhost:8000`.
+
+### Docker
+
+```bash
 docker build -f infra/docker/Dockerfile -t azure-app-platform-lab .
+docker run --rm -p 8000:8000 --name azure-app-platform-lab azure-app-platform-lab
+```
 
-# Run
-docker run -d -p 8000:8000 --name app-lab azure-app-platform-lab
+Em outro terminal:
 
-# Testar
+```bash
 curl http://localhost:8000/health
 ```
 
-## Kubernetes / AKS
+Resposta esperada:
 
-Manifests Kubernetes criados como exemplos didáticos:
+```json
+{
+  "service": "azure-app-platform-lab",
+  "status": "healthy",
+  "version": "1.0.0"
+}
+```
 
-- **Deployment** — 2 réplicas, resource limits, liveness/readiness probes.
-- **Service** — LoadBalancer expondo porta 80 → 8000.
+### Kubernetes local
+
+Depois de disponibilizar a imagem `azure-app-platform-lab:latest` no cluster local:
 
 ```bash
 kubectl apply -f infra/kubernetes/deployment.yaml
 kubectl apply -f infra/kubernetes/service.yaml
 kubectl get pods -l app=azure-app-platform-lab
+kubectl port-forward svc/azure-app-platform-lab-svc 8080:80
 ```
+
+Acesse `http://localhost:8080/health`.
+
+> Para AKS, substitua a imagem local por uma imagem publicada em um registry autorizado.
+
+## Integração contínua
+
+O workflow [`Validate Project`](.github/workflows/validate.yml) executa três verificações independentes:
+
+1. **Python Tests** — instala as dependências e executa `pytest`;
+2. **Markdown Lint** — valida a documentação sem mascarar falhas;
+3. **Docker Smoke Test** — constrói a imagem, inicia o container e chama `/health`.
+
+O workflow usa apenas permissão de leitura do conteúdo do repositório e não realiza deploy Azure.
+
+## Microsoft Azure
+
+Os serviços estudados estão documentados em [`docs/azure-services.md`](docs/azure-services.md):
+
+| Serviço | Uso conceitual no laboratório |
+|---|---|
+| Azure App Service | Hospedagem PaaS de aplicações web/APIs |
+| Azure Container Apps | Hospedagem gerenciada de containers |
+| Azure Kubernetes Service (AKS) | Kubernetes gerenciado para cenários que realmente exigem orquestração |
+| Application Insights | Telemetria de aplicações |
+| Log Analytics | Centralização e consulta de logs |
+
+Uma futura demonstração cloud deve priorizar **um único deploy real**, preferencialmente Azure Container Apps, em vez de provisionar vários serviços apenas para aumentar a lista de tecnologias. Consulte [`infra/azure/README.md`](infra/azure/README.md).
 
 ## Observabilidade
 
-| Ferramenta | O que coleta | Integração |
-|---|---|---|
-| Application Insights | Tempo de resposta, erros, dependências, traces | SDK ou auto-instrumentação |
-| Log Analytics | Logs centralizados de todos os recursos | Workspace KQL |
-
-A combinação de **métricas + logs + traces** forma os três pilares
-da observabilidade moderna. Detalhes em [`docs/architecture.md`](docs/architecture.md).
-
----
-
-## Estrutura do Repositório
-
-```
-azure-application-platform-lab/
-├── .github/workflows/
-│   └── validate.yml          # CI: lint + Docker build
-├── docs/
-│   ├── architecture.md       # Arquitetura conceitual + Mermaid
-│   ├── azure-services.md     # Tabela de serviços Azure
-│   ├── learning-notes.md     # Aprendizados do laboratório
-│   ├── security.md           # Diretrizes de segurança
-│   ├── AUDIT_HANDOFF.md      # Handoff para auditoria independente
-│   └── diagrams/             # Diagramas adicionais
-├── evidence/
-│   └── README.md             # Checklist de evidências (pendentes)
-├── infra/
-│   ├── docker/
-│   │   └── Dockerfile        # Multi-stage seguro
-│   ├── kubernetes/
-│   │   ├── deployment.yaml   # Deployment com probes
-│   │   └── service.yaml      # Service LoadBalancer
-│   └── azure/                # Templates Azure (futuro)
-├── src/
-│   ├── app.py                # Aplicação Flask
-│   ├── requirements.txt      # Dependências Python
-│   └── README.md             # Documentação do código
-├── .env.example              # Template de variáveis de ambiente
-├── .gitignore                # Proteção contra commits sensíveis
-├── LICENSE                   # MIT License
-└── README.md                 # Este arquivo
-```
-
-## Como Executar Localmente
-
-### Pré-requisitos
-
-- Python 3.10+
-- Docker
-- kubectl (opcional, para Kubernetes local)
-
-### Opção 1 — Python direto
-
-```bash
-cd src
-pip install -r requirements.txt
-python app.py
-# Acessar: http://localhost:8000
-```
-
-### Opção 2 — Docker
-
-```bash
-docker build -f infra/docker/Dockerfile -t azure-app-platform-lab .
-docker run -d -p 8000:8000 azure-app-platform-lab
-# Acessar: http://localhost:8000
-```
-
-### Opção 3 — Kubernetes (minikube / kind)
-
-```bash
-# Após build da imagem e load no cluster local:
-kubectl apply -f infra/kubernetes/deployment.yaml
-kubectl apply -f infra/kubernetes/service.yaml
-kubectl port-forward svc/azure-app-platform-lab-svc 8080:80
-# Acessar: http://localhost:8080
-```
-
----
-
-## Evidências
-
-> **PENDENTE DE EVIDÊNCIA / EXECUÇÃO PELO AUTOR**
->
-> As capturas de tela serão adicionadas à pasta [`evidence/`](evidence/) conforme
-> cada etapa for executada. Consulte o [checklist de evidências](evidence/README.md).
-
-## Aprendizados
-
-- **App Service vs Container Apps vs AKS** — cada serviço atende a um nível de complexidade diferente; a escolha depende do cenário.
-- **Docker como padrão** — containerizar a aplicação desde o início garante portabilidade e reprodutibilidade.
-- **Kubernetes não é sempre necessário** — para aplicações simples, Container Apps ou App Service são mais eficientes.
-- **Observabilidade não é opcional** — sem métricas e logs, diagnóstico vira tentativa e erro.
-- **Secrets nunca no código** — variáveis de ambiente, GitHub Secrets e Key Vault resolvem.
-
-> Detalhamento completo em [`docs/learning-notes.md`](docs/learning-notes.md)
-
-## Desafios Encontrados
-
-- Definir o escopo correto entre "laboratório didático" e "produção real" sem fabricar evidências.
-- Organizar a estrutura de diretórios de forma profissional sem overengineering.
-- Escolher uma aplicação de exemplo que fosse útil sem ser trivial demais.
-
-## Melhorias em Relação ao Laboratório Original
-
-| Melhoria | Descrição |
-|---|---|
-| Documentação estruturada | README premium + docs separados por tema |
-| Diagramas Mermaid | Arquitetura visível diretamente no GitHub |
-| Aplicação funcional | Código Flask executável com health check |
-| Dockerfile seguro | Usuário não-root, health check, slim image |
-| Kubernetes com probes | Liveness + readiness + resource limits |
-| Documentação de segurança | Audit trail e checklist de boas práticas |
-| Separação src/infra/docs | Estrutura profissional de monorepo |
-| CI real | GitHub Actions validando lint + Docker build |
-| Audit handoff | Documento para auditoria independente |
-| Checklist de evidências | Rastreabilidade honesta do que foi executado |
+Métricas, logs e traces estão entre os sinais mais utilizados em estratégias modernas de observabilidade. Neste laboratório, Application Insights e Log Analytics são estudados como componentes da plataforma Azure; nenhuma coleta real é declarada enquanto não houver recurso provisionado e evidência correspondente.
 
 ## Segurança
 
-- Nenhuma credencial, token ou secret está versionado neste repositório.
-- `.gitignore` bloqueia `.env`, `*.pem`, `*.key`, `credentials.json`.
-- Container roda como usuário não-root.
-- Detalhes em [`docs/security.md`](docs/security.md).
+O projeto aplica controles proporcionais ao escopo educacional:
 
-## Próximos Passos
+- nenhuma credencial deve ser versionada;
+- `.env` é ignorado e `.env.example` contém apenas placeholders;
+- Docker executa a aplicação como usuário não-root;
+- Kubernetes exige non-root, usa `RuntimeDefault` seccomp, bloqueia privilege escalation e remove Linux capabilities;
+- CI possui somente `contents: read`;
+- secrets Azure não são necessários para a validação atual.
 
-- [ ] Executar a aplicação localmente e via Docker, coletando evidências.
-- [ ] Provisionar Azure App Service ou Container Apps e realizar deploy real.
-- [ ] Configurar Application Insights e capturar métricas.
-- [ ] Consultar Log Analytics com KQL.
-- [ ] Adicionar testes unitários (pytest).
-- [ ] Implementar IaC com Bicep ou Terraform.
-- [ ] Adicionar container scanning no CI.
+Detalhes em [`docs/security.md`](docs/security.md).
 
----
+## Evidências
+
+O projeto distingue evidência automática de evidência manual.
+
+**Comprovação automática:** GitHub Actions executa testes Python, lint e smoke test Docker.
+
+**Ainda depende do autor:** screenshots exigidos/valorizados pela entrega da DIO, como aplicação local, `/health`, container e tela do workflow. O checklist está em [`evidence/README.md`](evidence/README.md).
+
+Nenhum print ou recurso Azure é fabricado neste repositório.
+
+## Aprendizados principais
+
+- App Service, Container Apps e AKS resolvem problemas diferentes; Kubernetes não deve ser escolhido apenas por ser mais complexo.
+- Testes e health checks tornam uma demonstração cloud mais verificável.
+- Docker melhora portabilidade, mas uma imagem segura também precisa considerar usuário, dependências e superfície de ataque.
+- CI útil deve falhar quando uma validação obrigatória falha.
+- Observabilidade deve ser planejada, mas não declarada como implementada sem telemetria real.
+- Secrets pertencem a mecanismos próprios de configuração e identidade, não ao código-fonte.
+
+Mais detalhes em [`docs/learning-notes.md`](docs/learning-notes.md).
+
+## Leitura rápida para recrutadores
+
+Em cerca de um minuto, os principais pontos do projeto podem ser avaliados nestes arquivos:
+
+- **Aplicação:** [`src/app.py`](src/app.py)
+- **Testes:** [`tests/test_app.py`](tests/test_app.py)
+- **Container:** [`infra/docker/Dockerfile`](infra/docker/Dockerfile)
+- **Kubernetes:** [`infra/kubernetes/deployment.yaml`](infra/kubernetes/deployment.yaml)
+- **CI:** [`.github/workflows/validate.yml`](.github/workflows/validate.yml)
+- **Arquitetura:** [`docs/architecture.md`](docs/architecture.md)
+- **Segurança:** [`docs/security.md`](docs/security.md)
+- **Evidências:** [`evidence/README.md`](evidence/README.md)
+
+## Próximos passos opcionais
+
+- [ ] adicionar screenshots reais da execução local/Docker/CI;
+- [ ] realizar um deploy real no Azure Container Apps, caso exista conta/ambiente autorizado;
+- [ ] registrar Application Insights/Log Analytics apenas se forem realmente configurados.
+
+Esses itens não justificam adicionar Helm, ArgoCD, Terraform, Grafana, Kafka ou microserviços apenas para ampliar artificialmente o projeto.
 
 ## Referências
 
@@ -302,22 +293,16 @@ kubectl port-forward svc/azure-app-platform-lab-svc 8080:80
 - [Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
 - [Docker Documentation](https://docs.docker.com/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Twelve-Factor App](https://12factor.net/)
-- [DIO — Digital Innovation One](https://www.dio.me/)
-- [Repositório de referência DIO](https://github.com/digitalinnovationone/Microsoft_Application_Platform)
+- [The Twelve-Factor App](https://12factor.net/)
+- [Digital Innovation One](https://www.dio.me/)
+- [Repositório de referência da DIO](https://github.com/digitalinnovationone/Microsoft_Application_Platform)
 
 ## Autor
 
-**Matheus Florindo**
+**Matheus Florindo** — [@matheusflorindo32](https://github.com/matheusflorindo32)
 
-- GitHub: [@matheusflorindo32](https://github.com/matheusflorindo32)
-
-> Projeto desenvolvido como parte do desafio educacional da
-> [Digital Innovation One (DIO)](https://www.dio.me/), utilizando como referência
-> o repositório [Microsoft_Application_Platform](https://github.com/digitalinnovationone/Microsoft_Application_Platform).
+Projeto educacional autoral desenvolvido a partir do desafio **DIO Microsoft Application Platform**. Nenhum bloco substancial de código é apresentado como cópia do repositório de referência.
 
 ## Licença
 
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
-O conteúdo é autoral — nenhum bloco substancial de código foi copiado do repositório de referência.
+Conteúdo autoral disponibilizado sob a [MIT License](LICENSE).
