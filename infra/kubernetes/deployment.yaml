@@ -1,7 +1,3 @@
-# ============================================
-# Kubernetes Deployment — Azure App Platform Lab
-# Exemplo didático para estudo de orquestração
-# ============================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,10 +15,20 @@ spec:
       labels:
         app: azure-app-platform-lab
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: app
-          # PENDENTE: substituir pela imagem real após push para ACR ou Docker Hub
+          # Substitua pela imagem publicada em um registry antes de um deploy Azure real.
           image: azure-app-platform-lab:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8000
               protocol: TCP

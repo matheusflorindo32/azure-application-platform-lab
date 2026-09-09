@@ -1,35 +1,47 @@
 # Evidências do Laboratório
 
-Este diretório é destinado a prints e capturas de tela que comprovem
-a execução prática de cada etapa do laboratório.
+Este diretório reúne apenas evidências reais e reproduzíveis da execução do projeto.
 
-## Checklist de Evidências
+## Estado atual
 
-> **Instrução:** Substitua `[ ]` por `[x]` e adicione o print correspondente
-> conforme cada etapa for concluída.
+- [x] GitHub Actions executado com sucesso no repositório
+- [ ] Aplicação executada localmente pelo autor e registrada em screenshot
+- [ ] Docker build/run registrado em screenshot pelo autor
+- [ ] Kubernetes local executado e registrado, caso o autor deseje demonstrá-lo
+- [ ] Deploy Azure real realizado
+- [ ] Application Insights / Log Analytics demonstrados com evidência real
 
-- [ ] Aplicação local funcionando (`localhost`)
-- [ ] Docker build bem-sucedido
-- [ ] Docker run — container em execução
-- [ ] Container respondendo corretamente
-- [ ] Kubernetes deployment aplicado
-- [ ] Kubernetes service acessível
-- [ ] Azure Portal — Resource Group criado
-- [ ] Azure App Service ou Container Apps — aplicação publicada
-- [ ] Application Insights — métricas visíveis
-- [ ] Log Analytics — logs consultados
+O workflow do GitHub Actions valida automaticamente testes Python, Markdown e um smoke test Docker com chamada ao endpoint `/health`. Screenshots manuais ainda não foram fabricados nem marcados como concluídos.
 
-## Como adicionar evidências
+## Organização recomendada
 
-1. Faça a captura de tela (screenshot).
-2. Salve na pasta `evidence/` com nome descritivo, por exemplo:
-   - `01-app-local.png`
-   - `02-docker-build.png`
-   - `03-docker-run.png`
-   - `04-azure-portal.png`
-3. Atualize o checklist acima marcando `[x]`.
-4. Faça commit das imagens junto com a atualização do checklist.
+```text
+evidence/
+├── README.md
+├── local/
+├── docker/
+├── ci/
+└── azure/
+```
 
-> **IMPORTANTE:** Nenhum item foi marcado como concluído porque
-> as evidências dependem da execução manual pelo autor.
-> Este checklist será preenchido conforme o progresso real.
+O Git não mantém diretórios vazios; crie as subpastas quando houver uma evidência real para adicionar.
+
+## Evidências mínimas para a entrega DIO
+
+Para complementar a documentação exigida pelo desafio, priorize quatro capturas simples:
+
+1. aplicação local respondendo;
+2. endpoint `/health`;
+3. container Docker em execução;
+4. GitHub Actions com os jobs aprovados.
+
+Sugestão de nomes:
+
+- `local/01-app-local.png`
+- `local/02-health-endpoint.png`
+- `docker/03-docker-run.png`
+- `ci/04-github-actions.png`
+
+## Regra de integridade
+
+Não adicione screenshots, URLs, métricas, recursos Azure ou resultados que não tenham sido realmente produzidos. Dados sensíveis devem ser ocultados antes de qualquer captura pública.

@@ -1,74 +1,59 @@
-# Audit Handoff — Documento para Segunda Auditoria
+# Audit Handoff
 
-Este documento resume o escopo, decisões e limitações do projeto para
-facilitar uma auditoria independente.
+Este documento resume o estado técnico do laboratório para revisão independente.
 
----
+## Escopo final
 
-## Escopo Criado
+- API educacional Flask com endpoints `/`, `/health` e `/info`;
+- testes automatizados com pytest;
+- Docker com Gunicorn, usuário não-root e health check;
+- Kubernetes Deployment + Service, probes, requests/limits e hardening básico;
+- GitHub Actions para testes, Markdown lint e smoke test Docker;
+- arquitetura Mermaid + SVG;
+- documentação de Azure, segurança, aprendizados e evidências;
+- Azure real mantido como evolução opcional até existir execução comprovada.
 
-- Repositório público no GitHub como entrega do desafio DIO Microsoft Application Platform.
-- Documentação profissional: README, arquitetura, learning notes, serviços Azure, segurança.
-- Aplicação mínima educacional em Python Flask.
-- Infraestrutura como código: Dockerfile, Kubernetes manifests (deployment + service).
-- Checklist de evidências para preenchimento posterior pelo autor.
-- Workflow de CI para validação básica (lint de Markdown, build Docker).
+## Validação automatizada
 
-## Decisões Tomadas
+O workflow `.github/workflows/validate.yml` deve bloquear falhas em três frentes:
 
-| Decisão | Justificativa |
-|---|---|
-| Python Flask como aplicação | Leve, minimalista, sem dependências complexas — ideal para fins didáticos |
-| Nenhum deploy Azure executado | Evitar fabricar evidências; etapas Azure ficam como "pendente de execução" |
-| MIT License para conteúdo autoral | Licença permissiva e compatível com portfólio |
-| Separação `src/` vs `infra/` vs `docs/` | Organização profissional de monorepo |
-| Badges apenas verdadeiros | Nenhum badge de build/deploy sem pipeline real |
-| Commits semânticos organizados | Profissionalismo e rastreabilidade |
+1. testes Python;
+2. lint de Markdown;
+3. build e smoke test Docker com chamada ao `/health`.
 
-## Arquivos Principais
+O workflow não possui deploy Azure nem requer secrets cloud.
 
-- `README.md` — Documentação principal premium
-- `src/app.py` — Aplicação Flask de exemplo
-- `infra/docker/Dockerfile` — Containerização da aplicação
-- `infra/kubernetes/deployment.yaml` — Manifest de Deployment
-- `infra/kubernetes/service.yaml` — Manifest de Service
-- `docs/architecture.md` — Arquitetura conceitual com Mermaid
-- `docs/learning-notes.md` — Aprendizados do laboratório
-- `docs/azure-services.md` — Tabela de referência de serviços Azure
-- `docs/security.md` — Diretrizes de segurança
-- `evidence/README.md` — Checklist de evidências
-- `.github/workflows/validate.yml` — CI de validação
+## Segurança
 
-## Limitações
+- `.env` não deve ser versionado;
+- `.env.example` contém somente placeholders;
+- container Docker executa como usuário não-root;
+- workload Kubernetes exige non-root, seccomp `RuntimeDefault`, bloqueia privilege escalation e remove capabilities;
+- workflow possui apenas `contents: read`;
+- nenhuma credencial Azure é necessária no estado atual.
 
-- **Nenhum recurso Azure foi provisionado.** Toda referência a serviços Azure é conceitual.
-- **Nenhum deploy foi executado.** Etapas de deploy dependem de execução manual.
-- **Evidências (screenshots) estão pendentes.** O checklist em `evidence/README.md` está vazio.
-- **CI não inclui deploy Azure** — apenas validação local (lint + Docker build).
+## Limites declarados
 
-## Itens Pendentes de Ação do Autor
+- nenhum recurso Azure é declarado como provisionado;
+- Application Insights e Log Analytics são conceituais até existir telemetria real;
+- screenshots locais/Docker ainda dependem do autor;
+- manifests Kubernetes são didáticos e exigem imagem disponível no cluster escolhido.
 
-- [ ] Executar aplicação localmente e capturar screenshot
-- [ ] Realizar Docker build e Docker run
-- [ ] Provisionar recursos Azure (se desejado)
-- [ ] Executar deploy em Azure App Service ou Container Apps
-- [ ] Configurar Application Insights e capturar métricas
-- [ ] Consultar Log Analytics e capturar resultado
-- [ ] Preencher checklist de evidências com screenshots reais
-- [ ] Adicionar topics ao repositório GitHub (manual via Settings)
+## Evidências
 
-## Pontos para Revisão
+A evidência automática é o próprio GitHub Actions. Evidências manuais devem ser adicionadas somente quando produzidas de verdade, conforme `evidence/README.md`.
 
-- Verificar se o Mermaid renderiza corretamente no GitHub.
-- Confirmar que nenhuma credencial ou dado pessoal foi versionado.
-- Validar links no README (referência DIO, perfil do autor).
-- Revisar ortografia e consistência da documentação.
+## Evolução opcional recomendada
 
-## Possíveis Melhorias
+Se houver ambiente Azure autorizado, a próxima evolução de maior valor é um único deploy em Azure Container Apps, seguido de validação pública de `/health`. AKS, Helm, ArgoCD, Terraform ou ferramentas adicionais não são necessários para cumprir o desafio nem para demonstrar os conceitos centrais deste laboratório.
 
-- Adicionar testes unitários à aplicação Flask.
-- Implementar multi-stage Docker build.
-- Criar template de IaC (Bicep ou Terraform) para provisionamento Azure.
-- Adicionar Helm chart como alternativa aos manifests Kubernetes.
-- Implementar health checks avançados no Kubernetes.
-- Adicionar container scanning (Trivy) no CI.
+## Critério de auditoria
+
+Uma revisão futura deve conferir:
+
+- resultado do workflow mais recente;
+- testes efetivamente executados;
+- renderização do README e SVG;
+- ausência de secrets;
+- consistência entre claims do README e evidências;
+- screenshots manuais antes da entrega final à DIO, caso exigidos na avaliação.
