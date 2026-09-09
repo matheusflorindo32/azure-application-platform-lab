@@ -1,0 +1,49 @@
+# ============================================
+# GitHub Actions — Validação do Projeto
+# Executa lint de Markdown e build Docker.
+# Não inclui deploy Azure — apenas validação local.
+# ============================================
+
+name: Validate Project
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  markdown-lint:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: '**/*.md'
+        continue-on-error: true
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f infra/docker/Dockerfile \
+            -t azure-app-platform-lab:test \
+            .
+
+      - name: Verify container starts
+        run: |
+          docker run -d --name test-app -p 8000:8000 azure-app-platform-lab:test
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+          docker stop test-app
+          docker rm test-app
