@@ -1,0 +1,20 @@
+# ============================================
+# Kubernetes Service — Azure App Platform Lab
+# Expõe o Deployment via LoadBalancer
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-app-platform-lab-svc
+  labels:
+    app: azure-app-platform-lab
+    project: dio-challenge
+spec:
+  type: LoadBalancer
+  selector:
+    app: azure-app-platform-lab
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+      name: http
