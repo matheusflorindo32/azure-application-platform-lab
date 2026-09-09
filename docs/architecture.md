@@ -1,86 +1,56 @@
 # Arquitetura da Solução
 
-> **Nota:** Este documento descreve a arquitetura **conceitual** do laboratório.
-> Os recursos Azure descritos aqui são referências de estudo e **não representam
-> infraestrutura provisionada**, salvo quando acompanhados de evidência na pasta `evidence/`.
+> Este documento descreve a arquitetura **conceitual** do laboratório. Os serviços Azure apresentados são alternativas de hospedagem e observabilidade estudadas; não representam recursos provisionados sem evidência correspondente.
 
-## Visão Geral
+## Visão geral
 
-A arquitetura segue um modelo cloud-native com containerização da aplicação,
-orquestração via Kubernetes e observabilidade integrada.
+A aplicação Flask é a carga de trabalho de referência. Ela pode ser executada diretamente, em Docker ou em Kubernetes local. Na Azure, App Service, Container Apps e AKS representam opções distintas de hospedagem, não componentes que precisam coexistir no mesmo deploy.
 
-## Diagrama Conceitual
+![Arquitetura conceitual](diagrams/architecture.svg)
+
+## Diagrama Mermaid
 
 ```mermaid
-flowchart TD
-    subgraph Cliente
-        A[Usuário / Browser]
-    end
+flowchart LR
+    U[Usuário / HTTP client] --> A[Flask API]
+    A --> D[Docker]
 
-    subgraph Aplicação
-        B[Web App / API — Flask]
-    end
+    D --> AS[Azure App Service]
+    D --> ACA[Azure Container Apps]
+    D --> AKS[AKS]
 
-    subgraph Hospedagem Azure
-        C[Azure App Service]
-        D[Azure Container Apps]
-    end
-
-    subgraph Containerização
-        E[Docker Container]
-    end
-
-    subgraph Orquestração
-        F[Azure Kubernetes Service — AKS]
-        G[Deployment]
-        H[Service — LoadBalancer]
-    end
-
-    subgraph Observabilidade
-        I[Application Insights]
-        J[Log Analytics Workspace]
-    end
-
-    A -->|HTTP Request| B
-    B --> E
-    E -->|Opção 1| C
-    E -->|Opção 2| D
-    E -->|Opção 3| F
-    F --> G
-    G --> H
-    H -->|Expõe endpoint| A
-
-    C -.->|Telemetria| I
-    D -.->|Telemetria| I
-    F -.->|Logs| J
-    I -.->|Consultas| J
+    AS -. telemetria .-> AI[Application Insights]
+    ACA -. telemetria .-> AI
+    AKS -. logs .-> LA[Log Analytics]
+    AI -. consultas .-> LA
 ```
 
-## Fluxo de Requisições
+## Fluxo de requisições
 
-1. **Usuário** acessa o endpoint da aplicação via browser ou ferramenta HTTP.
-2. **Aplicação Flask** processa a requisição dentro de um container Docker.
-3. O container pode ser executado em três cenários de hospedagem:
-   - **Azure App Service** — PaaS gerenciado, ideal para aplicações web simples.
-   - **Azure Container Apps** — serverless para containers, com auto-scaling.
-   - **AKS** — orquestração completa via Kubernetes para cenários complexos.
-4. **Observabilidade** é coletada via Application Insights (métricas e traces)
-   e Log Analytics (logs centralizados).
+1. O usuário chama a API Flask.
+2. A aplicação responde pelos endpoints `/`, `/health` e `/info`.
+3. Docker empacota a aplicação e o Gunicorn fornece o servidor WSGI no container.
+4. Kubernetes demonstra replicação, Service, health probes, recursos e controles básicos de segurança.
+5. Em uma evolução Azure real, uma única opção de hospedagem pode ser escolhida conforme a necessidade.
+6. Application Insights e Log Analytics só devem ser apresentados como implementados quando houver telemetria real e evidência correspondente.
 
-## Separação de Responsabilidades
+## Separação de responsabilidades
 
-| Camada | Responsabilidade | Tecnologia |
+| Camada | Responsabilidade | Implementação |
 |---|---|---|
-| Apresentação | Interface do usuário | Browser / HTTP client |
-| Aplicação | Lógica de negócio | Python Flask |
+| Aplicação | Endpoints e resposta HTTP | Flask |
+| Testes | Verificação de comportamento | pytest |
+| Runtime | Servir a aplicação no container | Gunicorn |
 | Containerização | Empacotamento e portabilidade | Docker |
-| Orquestração | Gerenciamento de réplicas e scaling | Kubernetes / AKS |
-| Plataforma | Hospedagem e runtime | Azure App Service / Container Apps |
-| Observabilidade | Monitoramento e diagnóstico | Application Insights + Log Analytics |
+| Orquestração | Réplicas, exposição e health checks | Kubernetes |
+| Plataforma | Hospedagem gerenciada | Azure, opcional |
+| Observabilidade | Telemetria, logs e diagnóstico | Application Insights / Log Analytics, conceitual |
 
-## Decisões de Arquitetura
+## Decisões de arquitetura
 
-- **Flask** foi escolhido por ser leve, minimalista e adequado para fins didáticos.
-- **Docker** permite que a aplicação rode de forma idêntica em qualquer ambiente.
-- **Kubernetes manifests** foram criados como exemplos didáticos reproduzíveis.
-- A arquitetura é **modular**: cada camada pode ser substituída sem alterar as demais.
+- **Flask** mantém o foco do laboratório na plataforma, e não em regras de negócio complexas.
+- **Docker** fornece uma unidade reproduzível para CI e para uma futura hospedagem cloud.
+- **Kubernetes** é demonstrado com manifests pequenos, sem introduzir Helm ou operadores desnecessários.
+- **Azure Container Apps** é a evolução cloud preferencial para uma futura demonstração real por equilibrar simplicidade e aderência ao tema de containers.
+- **AKS** permanece como alternativa estudada para cenários que realmente necessitam de Kubernetes gerenciado.
+- Métricas, logs e traces estão entre os sinais mais utilizados em estratégias modernas de observabilidade, mas este repositório não declara telemetria Azure real sem evidência.
