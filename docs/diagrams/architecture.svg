@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Azure Application Platform Lab architecture</title>
+  <desc id="desc">Conceptual flow from user to Flask API, Docker and alternative Azure hosting options with observability.</desc>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #172033; }
+    .title { font-size: 34px; font-weight: 700; }
+    .subtitle { font-size: 18px; }
+    .box { fill: #ffffff; stroke: #4f6b95; stroke-width: 2; rx: 18; }
+    .azure { fill: #f3f8ff; stroke: #0078d4; stroke-width: 2; rx: 18; }
+    .obs { fill: #f7f7fb; stroke: #6b7280; stroke-width: 2; rx: 18; }
+    .label { font-size: 20px; font-weight: 700; text-anchor: middle; }
+    .small { font-size: 15px; text-anchor: middle; }
+    .arrow { stroke: #52627a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .dash { stroke-dasharray: 8 8; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#52627a"/>
+    </marker>
+  </defs>
+
+  <text x="600" y="48" class="title" text-anchor="middle">Microsoft Azure Application Platform Lab</text>
+  <text x="600" y="78" class="subtitle" text-anchor="middle">Arquitetura conceitual — opções de hospedagem estudadas, não deploys simultâneos</text>
+
+  <rect x="60" y="150" width="180" height="90" class="box"/>
+  <text x="150" y="188" class="label">Usuário</text>
+  <text x="150" y="216" class="small">Browser / HTTP client</text>
+
+  <rect x="320" y="150" width="210" height="90" class="box"/>
+  <text x="425" y="188" class="label">Flask API</text>
+  <text x="425" y="216" class="small">/ • /health • /info</text>
+
+  <rect x="610" y="150" width="190" height="90" class="box"/>
+  <text x="705" y="188" class="label">Docker</text>
+  <text x="705" y="216" class="small">Gunicorn • non-root</text>
+
+  <path d="M240 195 H320" class="arrow"/>
+  <path d="M530 195 H610" class="arrow"/>
+
+  <text x="910" y="125" class="subtitle" text-anchor="middle">Alternativas Azure</text>
+
+  <rect x="850" y="145" width="290" height="70" class="azure"/>
+  <text x="995" y="177" class="label">Azure App Service</text>
+  <text x="995" y="200" class="small">PaaS para web apps/APIs</text>
+
+  <rect x="850" y="245" width="290" height="70" class="azure"/>
+  <text x="995" y="277" class="label">Azure Container Apps</text>
+  <text x="995" y="300" class="small">Containers gerenciados</text>
+
+  <rect x="850" y="345" width="290" height="70" class="azure"/>
+  <text x="995" y="377" class="label">AKS</text>
+  <text x="995" y="400" class="small">Kubernetes gerenciado</text>
+
+  <path d="M800 195 C825 195 825 180 850 180" class="arrow"/>
+  <path d="M800 195 C825 195 825 280 850 280" class="arrow"/>
+  <path d="M800 195 C825 195 825 380 850 380" class="arrow"/>
+
+  <rect x="320" y="430" width="280" height="80" class="obs"/>
+  <text x="460" y="464" class="label">Application Insights</text>
+  <text x="460" y="490" class="small">telemetria, desempenho e falhas</text>
+
+  <rect x="650" y="430" width="260" height="80" class="obs"/>
+  <text x="780" y="464" class="label">Log Analytics</text>
+  <text x="780" y="490" class="small">logs e consultas KQL</text>
+
+  <path d="M995 415 C995 470 940 470 910 470" class="arrow dash"/>
+  <path d="M850 280 C760 310 650 365 600 430" class="arrow dash"/>
+  <path d="M850 180 C720 220 600 340 560 430" class="arrow dash"/>
+
+  <text x="600" y="585" class="subtitle" text-anchor="middle">Fluxo comprovável no repositório: código → testes → Docker → CI → Kubernetes → documentação</text>
+</svg>
