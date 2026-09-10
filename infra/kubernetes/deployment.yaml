@@ -5,45 +5,62 @@ metadata:
   labels:
     app: azure-app-platform-lab
     project: dio-challenge
+
 spec:
   replicas: 2
+
   selector:
     matchLabels:
       app: azure-app-platform-lab
+
   template:
     metadata:
       labels:
         app: azure-app-platform-lab
+
     spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
+
       containers:
         - name: app
-          # Substitua pela imagem publicada em um registry antes de um deploy Azure real.
+
+          # Para execução local no Docker Desktop Kubernetes.
+          # Em um deploy real no Azure, substitua por uma imagem
+          # publicada em um registry, como Azure Container Registry.
           image: azure-app-platform-lab:latest
           imagePullPolicy: IfNotPresent
+
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             capabilities:
               drop:
                 - ALL
+
           ports:
             - containerPort: 8000
               protocol: TCP
+
           env:
             - name: APP_ENV
               value: "production"
+
             - name: APP_PORT
               value: "8000"
+
           resources:
             requests:
               cpu: "100m"
               memory: "128Mi"
+
             limits:
               cpu: "250m"
               memory: "256Mi"
+
           livenessProbe:
             httpGet:
               path: /health
@@ -51,6 +68,8 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 30
             timeoutSeconds: 5
+            failureThreshold: 3
+
           readinessProbe:
             httpGet:
               path: /health
@@ -58,4 +77,6 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
+            failureThreshold: 3
+
       restartPolicy: Always
