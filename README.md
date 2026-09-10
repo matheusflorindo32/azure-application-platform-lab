@@ -11,7 +11,7 @@
 
 ## Visão geral
 
-Este repositório transforma os conceitos estudados na formação **Microsoft Application Platform** em um laboratório pequeno, executável e auditável. A implementação usa uma API Flask como carga de trabalho de referência para demonstrar testes automatizados, containerização com Docker, manifests Kubernetes, CI com GitHub Actions, fundamentos de segurança e arquitetura Azure.
+Este repositório transforma os conceitos estudados na formação **Microsoft Application Platform** em um laboratório pequeno, executável e auditável. A implementação usa uma API Flask como carga de trabalho de referência para demonstrar testes automatizados, containerização com Docker, execução real em Kubernetes local, CI com GitHub Actions, fundamentos de segurança e arquitetura Azure.
 
 O projeto evita declarar infraestrutura cloud que não tenha sido realmente provisionada. App Service, Azure Container Apps, AKS, Application Insights e Log Analytics são documentados como alternativas e conceitos estudados enquanto não houver evidência real de execução.
 
@@ -39,8 +39,10 @@ A entrega proposta pela DIO solicita, em essência:
 - health check do container;
 - Kubernetes `Deployment` com 2 réplicas;
 - liveness/readiness probes e requests/limits;
-- workload Kubernetes com `runAsNonRoot`, `seccomp`, capabilities removidas e privilege escalation desabilitado;
+- workload Kubernetes com `runAsNonRoot`, UID/GID explícitos, `seccomp`, capabilities removidas e privilege escalation desabilitado;
 - `Service` do tipo `LoadBalancer`;
+- execução real em **Kubernetes local via Docker Desktop + kind**;
+- validação do endpoint `/health` através do Service Kubernetes via `port-forward`;
 - CI bloqueante com **GitHub Actions**;
 - smoke test real do container chamando `/health`;
 - arquitetura conceitual para App Service, Container Apps e AKS;
@@ -54,7 +56,7 @@ A entrega proposta pela DIO solicita, em essência:
 
 > O diagrama apresenta **alternativas de hospedagem estudadas**, e não três deploys Azure simultâneos.
 
-Fluxo técnico comprovável no repositório:
+Fluxo técnico comprovado no laboratório:
 
 ```text
 Código Flask
@@ -67,9 +69,13 @@ Container + /health
     ↓
 GitHub Actions
     ↓
-Manifests Kubernetes
+Docker Desktop + kind
     ↓
-Documentação Azure e observabilidade
+Kubernetes Deployment (2 réplicas)
+    ↓
+Service + port-forward
+    ↓
+/health → healthy
 ```
 
 A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](docs/architecture.md).
@@ -82,7 +88,8 @@ A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](
 | Servidor | Gunicorn | Execução WSGI no container |
 | Testes | pytest | Validação dos endpoints |
 | Container | Docker | Empacotamento e portabilidade |
-| Orquestração | Kubernetes | Deployment, Service e health probes |
+| Orquestração | Kubernetes v1.36.1 + kind | Deployment, Service, probes e validação local |
+| Runtime local | Docker Desktop + containerd image store | Execução do cluster Kubernetes local |
 | Cloud | Microsoft Azure | Plataforma estudada para hospedagem |
 | Observabilidade | Application Insights / Log Analytics | Telemetria e análise de logs |
 | CI | GitHub Actions | Testes, lint e smoke test Docker |
@@ -93,12 +100,12 @@ A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](
 |---|---|---|
 | Aplicação | Labs e exemplos educacionais | API Flask pequena e reproduzível |
 | Containers | Conceitos e exemplos | Dockerfile funcional com non-root e health check |
-| Kubernetes | Manifests educacionais | Deployment + Service + probes + limites + hardening básico |
+| Kubernetes | Manifests educacionais | Deployment + Service + probes + limites + hardening + execução local comprovada |
 | Segurança | Conteúdo de estudo | `.gitignore`, `.env.example`, non-root e workload restrito |
 | Testes | Dependente do laboratório | pytest para os três endpoints |
 | CI | Não é requisito central | GitHub Actions bloqueante |
 | Arquitetura | Conteúdo da trilha | Mermaid + SVG + documentação de decisões |
-| Evidências | Responsabilidade do aluno | Evidências locais, Docker, pytest e CI registradas no repositório |
+| Evidências | Responsabilidade do aluno | Evidências locais, Docker, pytest, CI e Kubernetes registradas no repositório |
 
 A comparação acima não substitui nem deprecia o material original; ela mostra como os conceitos foram reorganizados em uma entrega autoral de portfólio.
 
@@ -123,6 +130,8 @@ azure-application-platform-lab/
 │   ├── 05-docker-health.png
 │   ├── 06-pytest-success.png
 │   ├── 07-github-actions-success.png
+│   ├── 08-kubernetes-pods.png
+│   ├── 09-kubernetes-health.png
 │   └── README.md
 ├── infra/
 │   ├── azure/README.md
@@ -149,8 +158,9 @@ azure-application-platform-lab/
 ### Pré-requisitos
 
 - Python 3.12 recomendado;
-- Docker para execução containerizada;
-- `kubectl` e um cluster local apenas se quiser testar os manifests Kubernetes.
+- Docker Desktop;
+- `kubectl`;
+- Kubernetes local habilitado no Docker Desktop com **kind** e **containerd image store** para reproduzir a validação realizada neste laboratório.
 
 ### Python
 
@@ -193,20 +203,34 @@ Resposta esperada:
 }
 ```
 
-### Kubernetes local
+### Kubernetes local — validado
 
-Depois de disponibilizar a imagem `azure-app-platform-lab:latest` no cluster local:
+A execução real foi validada em **Docker Desktop + kind**, cluster de **1 nó**, Kubernetes **v1.36.1**.
 
 ```bash
 kubectl apply -f infra/kubernetes/deployment.yaml
 kubectl apply -f infra/kubernetes/service.yaml
+kubectl rollout status deployment/azure-app-platform-lab
 kubectl get pods -l app=azure-app-platform-lab
 kubectl port-forward svc/azure-app-platform-lab-svc 8080:80
 ```
 
-Acesse `http://localhost:8080/health`.
+Em outro terminal:
 
-> Para AKS, substitua a imagem local por uma imagem publicada em um registry autorizado.
+```powershell
+Invoke-RestMethod http://localhost:8080/health
+```
+
+Resultado observado:
+
+```text
+service                status  version
+azure-app-platform-lab healthy 1.0.0
+```
+
+O `Deployment` foi validado com **2 réplicas simultaneamente em estado `1/1 Running`**. As evidências estão em [`evidence/08-kubernetes-pods.png`](evidence/08-kubernetes-pods.png) e [`evidence/09-kubernetes-health.png`](evidence/09-kubernetes-health.png).
+
+> Esta validação comprova execução Kubernetes local. Ela **não representa deploy em AKS**. Para AKS, a imagem deve ser publicada em um registry autorizado, como Azure Container Registry, e a infraestrutura Azure deve ser provisionada separadamente.
 
 ## Integração contínua
 
@@ -243,7 +267,7 @@ O projeto aplica controles proporcionais ao escopo educacional:
 - nenhuma credencial deve ser versionada;
 - `.env` é ignorado e `.env.example` contém apenas placeholders;
 - Docker executa a aplicação como usuário não-root;
-- Kubernetes exige non-root, usa `RuntimeDefault` seccomp, bloqueia privilege escalation e remove Linux capabilities;
+- Kubernetes exige non-root e define `runAsUser: 1000` / `runAsGroup: 1000`, usa `RuntimeDefault` seccomp, bloqueia privilege escalation e remove Linux capabilities;
 - CI possui somente `contents: read`;
 - secrets Azure não são necessários para a validação atual.
 
@@ -255,7 +279,17 @@ O projeto distingue evidência automática de evidência manual.
 
 **Comprovação automática:** GitHub Actions executa testes Python, lint e smoke test Docker.
 
-**Comprovação manual concluída:** aplicação local, `/health`, `/info`, container Docker, health check do container, pytest local e tela do workflow foram registrados em screenshots reais na pasta [`evidence/`](evidence/).
+**Comprovação manual concluída:** aplicação local, `/health`, `/info`, container Docker, health check do container, pytest local, tela do workflow e execução Kubernetes local foram registrados em screenshots reais na pasta [`evidence/`](evidence/).
+
+A validação Kubernetes demonstra:
+
+- cluster local Docker Desktop + kind operacional;
+- node de control plane em estado `Ready`;
+- `Deployment` com 2 réplicas;
+- dois pods `1/1 Running`;
+- liveness/readiness probes configuradas em `/health`;
+- Service aplicado;
+- `/health` respondendo `healthy` via `kubectl port-forward`.
 
 O checklist detalhado está em [`evidence/README.md`](evidence/README.md).
 
@@ -266,6 +300,8 @@ Nenhum recurso Azure é declarado como provisionado sem evidência real.
 - App Service, Container Apps e AKS resolvem problemas diferentes; Kubernetes não deve ser escolhido apenas por ser mais complexo.
 - Testes e health checks tornam uma demonstração cloud mais verificável.
 - Docker melhora portabilidade, mas uma imagem segura também precisa considerar usuário, dependências e superfície de ataque.
+- `runAsNonRoot` pode exigir UID/GID numéricos explícitos para que o Kubernetes consiga validar o usuário da imagem.
+- A validação com Kubernetes local permite testar Deployment, Service, probes e réplicas sem provisionar infraestrutura Azure.
 - CI útil deve falhar quando uma validação obrigatória falha.
 - Observabilidade deve ser planejada, mas não declarada como implementada sem telemetria real.
 - Secrets pertencem a mecanismos próprios de configuração e identidade, não ao código-fonte.
@@ -287,11 +323,10 @@ Em cerca de um minuto, os principais pontos do projeto podem ser avaliados neste
 
 ## Próximos passos opcionais
 
-- [ ] executar Kubernetes local e registrar evidência, caso queira demonstrar também a camada de orquestração;
 - [ ] realizar um deploy real no Azure Container Apps, caso exista conta/ambiente autorizado;
 - [ ] registrar Application Insights/Log Analytics apenas se forem realmente configurados.
 
-Esses itens não justificam adicionar Helm, ArgoCD, Terraform, Grafana, Kafka ou microserviços apenas para ampliar artificialmente o projeto.
+A execução local em Kubernetes, antes opcional, já foi concluída e documentada. Não há necessidade de adicionar Helm, ArgoCD, Terraform, Grafana, Kafka ou microserviços apenas para ampliar artificialmente o projeto.
 
 ## Referências
 
