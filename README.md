@@ -52,9 +52,9 @@ A entrega proposta pela DIO solicita, em essência:
 
 ## Arquitetura
 
-![Arquitetura conceitual](docs/diagrams/architecture.svg)
+![Arquitetura Premium Elite](docs/diagrams/architecture-premium.png)
 
-> O diagrama apresenta **alternativas de hospedagem estudadas**, e não três deploys Azure simultâneos.
+> O diagrama apresenta **alternativas de hospedagem estudadas**, e não três deploys Azure simultâneos. A execução Kubernetes comprovada neste laboratório é local via **Docker Desktop + kind**; o AKS permanece representado como alternativa gerenciada no Azure.
 
 Fluxo técnico comprovado no laboratório:
 
@@ -104,7 +104,7 @@ A versão Mermaid e a explicação detalhada estão em [`docs/architecture.md`](
 | Segurança | Conteúdo de estudo | `.gitignore`, `.env.example`, non-root e workload restrito |
 | Testes | Dependente do laboratório | pytest para os três endpoints |
 | CI | Não é requisito central | GitHub Actions bloqueante |
-| Arquitetura | Conteúdo da trilha | Mermaid + SVG + documentação de decisões |
+| Arquitetura | Conteúdo da trilha | Mermaid + SVG + infográfico Premium + documentação de decisões |
 | Evidências | Responsabilidade do aluno | Evidências locais, Docker, pytest, CI e Kubernetes registradas no repositório |
 
 A comparação acima não substitui nem deprecia o material original; ela mostra como os conceitos foram reorganizados em uma entrega autoral de portfólio.
@@ -117,6 +117,7 @@ azure-application-platform-lab/
 │   └── validate.yml
 ├── docs/
 │   ├── diagrams/architecture.svg
+│   ├── diagrams/architecture-premium.png
 │   ├── architecture.md
 │   ├── azure-services.md
 │   ├── learning-notes.md
